@@ -304,6 +304,9 @@
 
         document.getElementById("inviteForm").addEventListener("submit", async function(event) {
             event.preventDefault();
+            const button = document.querySelector("button[type='submit']");
+            button.disabled = true;  // ボタンを無効化
+            
             const loader = document.getElementById("loader");
             const processLog = document.getElementById("processLog");
             const pendingCountElement = document.getElementById("pendingCount");
@@ -330,29 +333,37 @@
                     unique: true
                 };
 
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': token,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
 
-                if (response.status === 429) {
-                    const resetAfter = response.headers.get('X-RateLimit-Reset-After');
-                    const waitTime = parseFloat(resetAfter) * 1000;
-                    await new Promise(resolve => setTimeout(resolve, waitTime));
-                    return await createInvite(token, channelID, expiry, usageLimit);
-                }
+                    if (response.status === 429) {
+                        const resetAfter = response.headers.get('X-RateLimit-Reset-After');
+                        const waitTime = parseFloat(resetAfter) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        return await createInvite(token, channelID, expiry, usageLimit);
+                    }
 
-                if (!response.ok) {
-                    console.error(`Failed to create invite: ${response.statusText}`);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        const errorMessage = `Error ${errorData.code}: ${errorData.message}`;
+                        throw new Error(errorMessage);
+                    }
+
+                    const jsonResponse = await response.json();
+                    return `https://discord.gg/${jsonResponse.code}`;
+                } catch (error) {
+                    processLog.innerHTML += `<div style="color: red;">${error.message}</div>`;
+                    loader.style.display = 'none';
+                    button.disabled = false;
                     return null;
                 }
-
-                const jsonResponse = await response.json();
-                return `https://discord.gg/${jsonResponse.code}`;
             }
 
             let pendingCount = tokens.length * linkCount;
@@ -363,24 +374,28 @@
             for (const token of tokens) {
                 for (let i = 0; i < linkCount; i++) {
                     const inviteLink = await createInvite(token, channelID, expiry, usageLimit);
-                    if (inviteLink) {
-                        const li = document.createElement("li");
-                        const a = document.createElement("a");
-                        a.href = inviteLink;
-                        a.target = "_blank";
-                        a.textContent = inviteLink;
-                        li.appendChild(a);
-                        logList.appendChild(li);
-                        completedCount++;
-                        completedCountElement.textContent = completedCount;
-                        pendingCount--;
-                        pendingCountElement.textContent = pendingCount;
+                    if (!inviteLink) {
+                        // エラーが発生した場合は処理を停止
+                        return;
                     }
+
+                    const li = document.createElement("li");
+                    const a = document.createElement("a");
+                    a.href = inviteLink;
+                    a.target = "_blank";
+                    a.textContent = inviteLink;
+                    li.appendChild(a);
+                    logList.appendChild(li);
+                    completedCount++;
+                    completedCountElement.textContent = completedCount;
+                    pendingCount--;
+                    pendingCountElement.textContent = pendingCount;
                 }
             }
 
             processLog.innerHTML += "<div>完了しました！</div>";
             loader.style.display = 'none';
+            button.disabled = false;  // 処理が完了したらボタンを再度有効化
         });
     </script>
 </body>
