@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -64,7 +64,7 @@
         }
 
         /* 入力フォーム */
-        input, textarea, select {
+        input, select {
             width: 100%;
             padding: 15px;
             border: 1px solid #ddd;
@@ -74,17 +74,29 @@
             transition: all 0.3s ease;
             margin-bottom: 20px;
             box-sizing: border-box;
+            resize: none; /* 幅を収縮不可にする */
         }
 
-        input:focus, textarea:focus, select:focus {
+        input:focus, select:focus {
             border-color: #4e73df;
             background-color: #ffffff;
             box-shadow: 0 0 10px rgba(78, 115, 223, 0.3);
             outline: none;
         }
 
-        textarea {
-            resize: vertical;
+        /* トークン非表示ボタン */
+        #toggleTokenButton {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        #toggleTokenButton:hover {
+            background-color: #ddd;
         }
 
         /* ボタン */
@@ -223,17 +235,17 @@
     <h1>Discord 招待リンク生成器</h1>
 
     <div class="container">
-        <!-- 実行中のプロセスログ -->
         <div class="process-log" id="processLog">
             <h4>進行状況</h4>
             <div>作成予定: <span id="pendingCount">0</span></div>
             <div>作成済み: <span id="completedCount">0</span></div>
         </div>
 
-        <!-- フォーム -->
         <form id="inviteForm">
-            <label for="tokens">Discordトークン（改行で複数入力可）:</label>
-            <textarea id="tokens" rows="5" placeholder="Token1&#10;Token2&#10;Token3"></textarea>
+            <label for="tokens">Discordトークン:</label>
+            <input type="text" id="tokens" placeholder="Token1" />
+
+            <button type="button" id="toggleTokenButton">TOKENを隠す</button>
 
             <label for="channelID">チャンネルID:</label>
             <input type="text" id="channelID" required>
@@ -264,9 +276,10 @@
             <input type="number" id="linkCount" value="1" min="1">
 
             <button type="submit">招待リンク生成</button>
+            <!-- 処理停止ボタン -->
+            <button type="button" id="stopButton" disabled>処理停止</button>
         </form>
 
-        <!-- ログエリア -->
         <div class="log">
             <h3>生成されたリンク:</h3>
             <ul id="logList"></ul>
@@ -276,6 +289,18 @@
     <div class="loader" id="loader"></div>
 
     <script>
+        // トークンの表示/非表示切り替え
+        document.getElementById("toggleTokenButton").addEventListener("click", function() {
+            const tokensInput = document.getElementById("tokens");
+            if (tokensInput.type === "text") {
+                tokensInput.type = "password";
+                this.textContent = "TOKENを表示";
+            } else {
+                tokensInput.type = "text";
+                this.textContent = "TOKENを隠す";
+            }
+        });
+
         window.onload = function() {
             if (localStorage.getItem('tokens')) {
                 document.getElementById('tokens').value = localStorage.getItem('tokens');
@@ -302,11 +327,16 @@
             localStorage.setItem('linkCount', document.getElementById('linkCount').value);
         });
 
+        let abortController;
+
         document.getElementById("inviteForm").addEventListener("submit", async function(event) {
             event.preventDefault();
             const button = document.querySelector("button[type='submit']");
             button.disabled = true;  // ボタンを無効化
             
+            const stopButton = document.getElementById("stopButton");
+            stopButton.disabled = false; // 停止ボタンを有効化
+
             const loader = document.getElementById("loader");
             const processLog = document.getElementById("processLog");
             const pendingCountElement = document.getElementById("pendingCount");
@@ -320,6 +350,10 @@
             const expiry = document.getElementById("expiry").value;
             const usageLimit = document.getElementById("usageLimit").value;
             const linkCount = parseInt(document.getElementById("linkCount").value, 10);
+
+            // 処理停止機能の実装
+            abortController = new AbortController();
+            const signal = abortController.signal;
 
             async function createInvite(token, channelID, expiry, usageLimit) {
                 const url = `https://discord.com/api/v9/channels/${channelID}/invites`;
@@ -340,7 +374,8 @@
                             'Authorization': token,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify(data),
+                        signal: signal  // 中止信号を渡す
                     });
 
                     if (response.status === 429) {
@@ -359,9 +394,14 @@
                     const jsonResponse = await response.json();
                     return `https://discord.gg/${jsonResponse.code}`;
                 } catch (error) {
-                    processLog.innerHTML += `<div style="color: red;">${error.message}</div>`;
+                    if (error.name === 'AbortError') {
+                        processLog.innerHTML += "<div>処理が中止されました。</div>";
+                    } else {
+                        processLog.innerHTML += `<div style="color: red;">${error.message}</div>`;
+                    }
                     loader.style.display = 'none';
                     button.disabled = false;
+                    stopButton.disabled = true;
                     return null;
                 }
             }
@@ -396,6 +436,14 @@
             processLog.innerHTML += "<div>完了しました！</div>";
             loader.style.display = 'none';
             button.disabled = false;  // 処理が完了したらボタンを再度有効化
+            stopButton.disabled = true;
+        });
+
+        // 停止ボタンをクリックしたときに処理を中止
+        document.getElementById("stopButton").addEventListener("click", function() {
+            if (abortController) {
+                abortController.abort();  // 処理を中止
+            }
         });
     </script>
 </body>
