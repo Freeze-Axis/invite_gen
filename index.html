@@ -165,18 +165,29 @@
             transform: scale(1.03);
         }
 
+
+
+        /* ───────────────────────────────────── */
+        /* 生成されたリンクの見やすさを向上させる */
         .log ul li a {
-            color: #4e73df;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 500;
-            word-wrap: break-word;
-            flex-grow: 1;
+            font-family: 'Poppins', sans-serif;  /* 元と同じフォントを指定 */
+            font-size: 18px;                     /* サイズを大きめに */
+            font-weight: 600;                    /* 少し太めに */
+            letter-spacing: 0.5px;               /* 字間を広げて読みやすく */
+            color: #2c3e50;                      /* コントラスト高めの色に変更 */
+            word-break: break-all;               /* 長い URL の折り返しを許可 */
+            transition: color 0.2s ease;
         }
 
         .log ul li a:hover {
+            color: #4e73df;                      /* ホバー時にアクセントカラーを適用 */
             text-decoration: underline;
         }
+        /* ───────────────────────────────────── */
+
+
+
+
 
         /* 実行中のログ */
         .process-log {
