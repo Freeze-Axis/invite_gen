@@ -74,7 +74,7 @@
             transition: all 0.3s ease;
             margin-bottom: 20px;
             box-sizing: border-box;
-            resize: none; /* 幅を収縮不可にする */
+            resize: none;
         }
 
         input:focus, select:focus {
@@ -100,7 +100,7 @@
         }
 
         /* ボタン */
-        button {
+        button[type="submit"], button#stopButton {
             width: 100%;
             padding: 15px;
             background-color: #4e73df;
@@ -113,12 +113,12 @@
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
 
-        button:hover {
+        button[type="submit"]:hover, button#stopButton:hover {
             background-color: #375a8c;
             transform: translateY(-2px);
         }
 
-        button:disabled {
+        button[type="submit"]:disabled, button#stopButton:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
         }
@@ -143,21 +143,22 @@
             font-weight: 600;
         }
 
+        /* グリッドレイアウトに変更 */
         .log ul {
             list-style: none;
             padding: 0;
             margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 15px;
         }
 
         .log ul li {
-            margin-bottom: 15px;
-            padding: 15px;
+            padding: 20px;
             background-color: #f1f5f9;
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: block;
             transition: transform 0.2s ease;
         }
 
@@ -165,29 +166,20 @@
             transform: scale(1.03);
         }
 
-
-
-        /* ───────────────────────────────────── */
-        /* 生成されたリンクの見やすさを向上させる */
         .log ul li a {
-            font-family: 'Poppins', sans-serif;  /* 元と同じフォントを指定 */
-            font-size: 18px;                     /* サイズを大きめに */
-            font-weight: 600;                    /* 少し太めに */
-            letter-spacing: 0.5px;               /* 字間を広げて読みやすく */
-            color: #2c3e50;                      /* コントラスト高めの色に変更 */
-            word-break: break-all;               /* 長い URL の折り返しを許可 */
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #2c3e50;
+            word-break: break-all;
             transition: color 0.2s ease;
         }
 
         .log ul li a:hover {
-            color: #4e73df;                      /* ホバー時にアクセントカラーを適用 */
+            color: #4e73df;
             text-decoration: underline;
         }
-        /* ───────────────────────────────────── */
-
-
-
-
 
         /* 実行中のログ */
         .process-log {
@@ -227,7 +219,7 @@
                 padding: 30px 25px;
             }
 
-            button {
+            button[type="submit"], button#stopButton {
                 font-size: 16px;
             }
 
@@ -239,6 +231,25 @@
                 width: 100%;
                 max-width: 100%;
             }
+        }
+
+        /* 全画面表示時に最大4列に固定 */
+        .log:-webkit-full-screen ul,
+        .log:fullscreen ul {
+            grid-template-columns: repeat(4, minmax(240px, 1fr));
+        }
+
+        /* 全画面トグル用記号ボタン */
+        .fullscreen-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+        }
+        .fullscreen-btn:focus {
+            outline: none;
         }
     </style>
 </head>
@@ -287,12 +298,15 @@
             <input type="number" id="linkCount" value="1" min="1">
 
             <button type="submit">招待リンク生成</button>
-            <!-- 処理停止ボタン -->
             <button type="button" id="stopButton" disabled>処理停止</button>
         </form>
 
         <div class="log">
-            <h3>生成されたリンク:</h3>
+            <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom: 10px;">
+                <h3>生成されたリンク:</h3>
+                <!-- 記号アイコンの全画面トグルボタン -->
+                <button type="button" id="fullscreenButton" class="fullscreen-btn" aria-label="全画面表示">⛶</button>
+            </div>
             <ul id="logList"></ul>
         </div>
     </div>
@@ -343,10 +357,10 @@
         document.getElementById("inviteForm").addEventListener("submit", async function(event) {
             event.preventDefault();
             const button = document.querySelector("button[type='submit']");
-            button.disabled = true;  // ボタンを無効化
-            
+            button.disabled = true;
+
             const stopButton = document.getElementById("stopButton");
-            stopButton.disabled = false; // 停止ボタンを有効化
+            stopButton.disabled = false;
 
             const loader = document.getElementById("loader");
             const processLog = document.getElementById("processLog");
@@ -356,59 +370,41 @@
             pendingCountElement.textContent = "0";
             completedCountElement.textContent = "0";
 
-            const tokens = document.getElementById("tokens").value.split('\n').map(token => token.trim()).filter(token => token);
+            const tokens = document.getElementById("tokens").value.split('\n').map(t => t.trim()).filter(t => t);
             const channelID = document.getElementById("channelID").value;
             const expiry = document.getElementById("expiry").value;
             const usageLimit = document.getElementById("usageLimit").value;
             const linkCount = parseInt(document.getElementById("linkCount").value, 10);
 
-            // 処理停止機能の実装
             abortController = new AbortController();
             const signal = abortController.signal;
 
             async function createInvite(token, channelID, expiry, usageLimit) {
                 const url = `https://discord.com/api/v9/channels/${channelID}/invites`;
-
-                const data = {
-                    max_age: expiry,
-                    max_uses: usageLimit,
-                    temporary: false,
-                    flags: 0,
-                    target_type: null,
-                    unique: true
-                };
-
+                const data = { max_age: expiry, max_uses: usageLimit, temporary: false, flags: 0, target_type: null, unique: true };
                 try {
                     const response = await fetch(url, {
                         method: 'POST',
-                        headers: {
-                            'Authorization': token,
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Authorization': token, 'Content-Type': 'application/json' },
                         body: JSON.stringify(data),
-                        signal: signal  // 中止信号を渡す
+                        signal
                     });
-
                     if (response.status === 429) {
                         const resetAfter = response.headers.get('X-RateLimit-Reset-After');
-                        const waitTime = parseFloat(resetAfter) * 1000;
-                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        await new Promise(r => setTimeout(r, parseFloat(resetAfter) * 1000));
                         return await createInvite(token, channelID, expiry, usageLimit);
                     }
-
                     if (!response.ok) {
                         const errorData = await response.json();
-                        const errorMessage = `Error ${errorData.code}: ${errorData.message}`;
-                        throw new Error(errorMessage);
+                        throw new Error(`Error ${errorData.code}: ${errorData.message}`);
                     }
-
-                    const jsonResponse = await response.json();
-                    return `https://discord.gg/${jsonResponse.code}`;
-                } catch (error) {
-                    if (error.name === 'AbortError') {
+                    const json = await response.json();
+                    return `https://discord.gg/${json.code}`;
+                } catch (err) {
+                    if (err.name === 'AbortError') {
                         processLog.innerHTML += "<div>処理が中止されました。</div>";
                     } else {
-                        processLog.innerHTML += `<div style="color: red;">${error.message}</div>`;
+                        processLog.innerHTML += `<div style="color: red;">${err.message}</div>`;
                     }
                     loader.style.display = 'none';
                     button.disabled = false;
@@ -419,17 +415,13 @@
 
             let pendingCount = tokens.length * linkCount;
             pendingCountElement.textContent = pendingCount;
-
             const logList = document.getElementById("logList");
             let completedCount = 0;
+
             for (const token of tokens) {
                 for (let i = 0; i < linkCount; i++) {
                     const inviteLink = await createInvite(token, channelID, expiry, usageLimit);
-                    if (!inviteLink) {
-                        // エラーが発生した場合は処理を停止
-                        return;
-                    }
-
+                    if (!inviteLink) return;
                     const li = document.createElement("li");
                     const a = document.createElement("a");
                     a.href = inviteLink;
@@ -446,14 +438,38 @@
 
             processLog.innerHTML += "<div>完了しました！</div>";
             loader.style.display = 'none';
-            button.disabled = false;  // 処理が完了したらボタンを再度有効化
+            button.disabled = false;
             stopButton.disabled = true;
         });
 
-        // 停止ボタンをクリックしたときに処理を中止
         document.getElementById("stopButton").addEventListener("click", function() {
-            if (abortController) {
-                abortController.abort();  // 処理を中止
+            if (abortController) abortController.abort();
+        });
+
+        // Fullscreen トグル（⛶／🗗）
+        const fsButton = document.getElementById("fullscreenButton");
+        const logContainer = document.querySelector(".log");
+        const ENTER_ICON = '⛶';
+        const EXIT_ICON  = '🗗';
+
+        // 初期アイコン
+        fsButton.textContent = ENTER_ICON;
+
+        fsButton.addEventListener("click", () => {
+            if (!document.fullscreenElement) {
+                logContainer.requestFullscreen().catch(err => console.error(err));
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.addEventListener("fullscreenchange", () => {
+            if (document.fullscreenElement) {
+                fsButton.textContent = EXIT_ICON;
+                fsButton.setAttribute('aria-label', '全画面解除');
+            } else {
+                fsButton.textContent = ENTER_ICON;
+                fsButton.setAttribute('aria-label', '全画面表示');
             }
         });
     </script>
