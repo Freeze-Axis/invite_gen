@@ -94,6 +94,7 @@
             font-size: 14px;
             cursor: pointer;
         }
+
         #toggleTokenButton:hover {
             background-color: #ddd;
         }
@@ -111,10 +112,12 @@
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
+
         button[type="submit"]:hover, button#stopButton:hover {
             background-color: #375a8c;
             transform: translateY(-2px);
         }
+
         button[type="submit"]:disabled, button#stopButton:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
@@ -131,25 +134,14 @@
             overflow-y: auto;
             max-height: 550px;
             box-sizing: border-box;
-            position: relative;
+            position: relative; /* sticky の基準 */
         }
+
         .log h3 {
             margin-top: 0;
             font-size: 22px;
             color: #333;
             font-weight: 600;
-        }
-        /* sticky ヘッダー部分 */
-        .log-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            background-color: white;
-            z-index: 10;
-            padding: 10px 0;
-            margin-bottom: 10px;
         }
 
         /* グリッドレイアウトに変更 */
@@ -161,19 +153,20 @@
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 15px;
         }
+
         .log ul li {
             padding: 20px;
             background-color: #f1f5f9;
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: block;
             transition: transform 0.2s ease;
         }
+
         .log ul li:hover {
             transform: scale(1.03);
         }
+
         .log ul li a {
             font-family: 'Poppins', sans-serif;
             font-size: 18px;
@@ -183,23 +176,10 @@
             word-break: break-all;
             transition: color 0.2s ease;
         }
+
         .log ul li a:hover {
             color: #4e73df;
             text-decoration: underline;
-        }
-
-        /* ピン留めボタン */
-        .pin-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-            margin-left: 8px;
-        }
-        .pin-btn:focus {
-            outline: none;
         }
 
         /* 実行中のログ */
@@ -216,6 +196,7 @@
             box-sizing: border-box;
             overflow-y: auto;
         }
+
         .process-log h4 {
             margin-top: 0;
             font-size: 18px;
@@ -229,16 +210,24 @@
                 font-size: 28px;
                 padding: 20px;
             }
+
             .container {
                 flex-direction: column;
                 gap: 30px;
             }
+
             form {
                 padding: 30px 25px;
             }
+
             button[type="submit"], button#stopButton {
                 font-size: 16px;
             }
+
+            .log h3 {
+                font-size: 20px;
+            }
+
             .process-log {
                 width: 100%;
                 max-width: 100%;
@@ -251,17 +240,15 @@
             grid-template-columns: repeat(4, minmax(240px, 1fr));
         }
 
-        /* 全画面トグル用記号ボタン */
-        .fullscreen-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            line-height: 1;
-            padding: 4px;
-        }
-        .fullscreen-btn:focus {
-            outline: none;
+        /* 追加：.log-header をスクロール領域内で固定 */
+        .log-header {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 10;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -278,6 +265,7 @@
         <form id="inviteForm">
             <label for="tokens">Discordトークン:</label>
             <input type="text" id="tokens" placeholder="Token1" />
+
             <button type="button" id="toggleTokenButton">TOKENを隠す</button>
 
             <label for="channelID">チャンネルID:</label>
@@ -313,9 +301,9 @@
         </form>
 
         <div class="log">
-            <div class="log-header">
+            <div class="log-header" style="display:flex; align-items:center; justify-content: space-between;">
                 <h3>生成されたリンク:</h3>
-                <button type="button" id="fullscreenButton" class="fullscreen-btn" aria-label="全画面表示">⛶</button>
+                <button type="button" id="fullscreenButton" style="padding:6px 12px; font-size:14px; cursor:pointer;">全画面表示</button>
             </div>
             <ul id="logList"></ul>
         </div>
@@ -336,37 +324,51 @@
             }
         });
 
-        // ローカルストレージ読み込み
         window.onload = function() {
-            ['tokens','channelID','expiry','usageLimit','linkCount'].forEach(key => {
-                const el = document.getElementById(key);
-                if (localStorage.getItem(key) && el) el.value = localStorage.getItem(key);
-            });
+            if (localStorage.getItem('tokens')) {
+                document.getElementById('tokens').value = localStorage.getItem('tokens');
+            }
+            if (localStorage.getItem('channelID')) {
+                document.getElementById('channelID').value = localStorage.getItem('channelID');
+            }
+            if (localStorage.getItem('expiry')) {
+                document.getElementById('expiry').value = localStorage.getItem('expiry');
+            }
+            if (localStorage.getItem('usageLimit')) {
+                document.getElementById('usageLimit').value = localStorage.getItem('usageLimit');
+            }
+            if (localStorage.getItem('linkCount')) {
+                document.getElementById('linkCount').value = localStorage.getItem('linkCount');
+            }
         };
-        document.getElementById("inviteForm").addEventListener("input", () => {
-            ['tokens','channelID','expiry','usageLimit','linkCount'].forEach(key => {
-                const el = document.getElementById(key);
-                if (el) localStorage.setItem(key, el.value);
-            });
+
+        document.getElementById("inviteForm").addEventListener("input", function(event) {
+            localStorage.setItem('tokens', document.getElementById('tokens').value);
+            localStorage.setItem('channelID', document.getElementById('channelID').value);
+            localStorage.setItem('expiry', document.getElementById('expiry').value);
+            localStorage.setItem('usageLimit', document.getElementById('usageLimit').value);
+            localStorage.setItem('linkCount', document.getElementById('linkCount').value);
         });
 
         let abortController;
+
         document.getElementById("inviteForm").addEventListener("submit", async function(event) {
             event.preventDefault();
-            const submitBtn = this.querySelector("button[type='submit']");
-            const stopBtn = document.getElementById("stopButton");
+            const button = document.querySelector("button[type='submit']");
+            button.disabled = true;
+
+            const stopButton = document.getElementById("stopButton");
+            stopButton.disabled = false;
+
             const loader = document.getElementById("loader");
             const processLog = document.getElementById("processLog");
-            const pendingCountEl = document.getElementById("pendingCount");
-            const completedCountEl = document.getElementById("completedCount");
-
-            submitBtn.disabled = true;
-            stopBtn.disabled = false;
+            const pendingCountElement = document.getElementById("pendingCount");
+            const completedCountElement = document.getElementById("completedCount");
             loader.style.display = 'block';
-            pendingCountEl.textContent = "0";
-            completedCountEl.textContent = "0";
+            pendingCountElement.textContent = "0";
+            completedCountElement.textContent = "0";
 
-            const tokens = document.getElementById("tokens").value.split('\n').map(t => t.trim()).filter(Boolean);
+            const tokens = document.getElementById("tokens").value.split('\n').map(t => t.trim()).filter(t => t);
             const channelID = document.getElementById("channelID").value;
             const expiry = document.getElementById("expiry").value;
             const usageLimit = document.getElementById("usageLimit").value;
@@ -375,104 +377,131 @@
             abortController = new AbortController();
             const signal = abortController.signal;
 
-            async function createInvite(token) {
+            async function createInvite(token, channelID, expiry, usageLimit) {
                 const url = `https://discord.com/api/v9/channels/${channelID}/invites`;
                 const data = { max_age: expiry, max_uses: usageLimit, temporary: false, flags: 0, target_type: null, unique: true };
                 try {
-                    const res = await fetch(url, {
+                    const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Authorization': token, 'Content-Type': 'application/json' },
                         body: JSON.stringify(data),
                         signal
                     });
-                    if (res.status === 429) {
-                        const wait = parseFloat(res.headers.get('X-RateLimit-Reset-After')) * 1000;
-                        await new Promise(r => setTimeout(r, wait));
-                        return createInvite(token);
+                    if (response.status === 429) {
+                        const resetAfter = response.headers.get('X-RateLimit-Reset-After');
+                        await new Promise(r => setTimeout(r, parseFloat(resetAfter) * 1000));
+                        return await createInvite(token, channelID, expiry, usageLimit);
                     }
-                    if (!res.ok) {
-                        const err = await res.json();
-                        throw new Error(`Error ${err.code}: ${err.message}`);
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`Error ${errorData.code}: ${errorData.message}`);
                     }
-                    const json = await res.json();
+
+                    const json = await response.json();
                     return `https://discord.gg/${json.code}`;
-                } catch (e) {
-                    if (e.name === 'AbortError') {
+                } catch (err) {
+                    if (err.name === 'AbortError') {
                         processLog.innerHTML += "<div>処理が中止されました。</div>";
                     } else {
-                        processLog.innerHTML += `<div style="color:red;">${e.message}</div>`;
+                        processLog.innerHTML += `<div style="color: red;">${err.message}</div>`;
                     }
                     loader.style.display = 'none';
-                    submitBtn.disabled = false;
-                    stopBtn.disabled = true;
+                    button.disabled = false;
+                    stopButton.disabled = true;
                     return null;
                 }
             }
 
-            let pending = tokens.length * linkCount;
-            pendingCountEl.textContent = pending;
-            let completed = 0;
+            let pendingCount = tokens.length * linkCount;
+            pendingCountElement.textContent = pendingCount;
             const logList = document.getElementById("logList");
-            logList.innerHTML = '';
+            let completedCount = 0;
 
             for (const token of tokens) {
                 for (let i = 0; i < linkCount; i++) {
-                    const link = await createInvite(token);
-                    if (!link) return;
-                    const li = document.createElement('li');
-                    // リンク
-                    const a = document.createElement('a');
-                    a.href = link;
-                    a.target = '_blank';
-                    a.textContent = link;
-                    // ピン留めボタン
-                    const pinBtn = document.createElement('button');
-                    pinBtn.className = 'pin-btn';
-                    pinBtn.title = 'ピン留め切替';
-                    pinBtn.textContent = '📍';
-                    pinBtn.addEventListener('click', () => {
-                        pinBtn.textContent = pinBtn.textContent === '📍' ? '📌' : '📍';
-                    });
-                    li.append(a, pinBtn);
+                    const inviteLink = await createInvite(token, channelID, expiry, usageLimit);
+                    if (!inviteLink) return;
+                    const li = document.createElement("li");
+                    const a = document.createElement("a");
+                    a.href = inviteLink;
+                    a.target = "_blank";
+                    a.textContent = inviteLink;
+                    li.appendChild(a);
                     logList.appendChild(li);
-
-                    completed++;
-                    pending--;
-                    completedCountEl.textContent = completed;
-                    pendingCountEl.textContent = pending;
+                    completedCount++;
+                    completedCountElement.textContent = completedCount;
+                    pendingCount--;
+                    pendingCountElement.textContent = pendingCount;
                 }
             }
 
             processLog.innerHTML += "<div>完了しました！</div>";
             loader.style.display = 'none';
-            submitBtn.disabled = false;
-            stopBtn.disabled = true;
+            button.disabled = false;
+            stopButton.disabled = true;
         });
 
-        document.getElementById("stopButton").addEventListener("click", () => {
+        document.getElementById("stopButton").addEventListener("click", function() {
             if (abortController) abortController.abort();
         });
 
-        // 全画面トグル（⛶／🗗）
+        // --- 全画面表示 / 終了 のユーティリティ関数（ベンダープレフィックス対応） ---
+        function openFullscreen(elem) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function closeFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+
+        // --- フルスクリーン切り替えボタン ---
         const fsButton = document.getElementById("fullscreenButton");
         const logContainer = document.querySelector(".log");
-        const ENTER = '⛶', EXIT = '🗗';
-        fsButton.textContent = ENTER;
+
         fsButton.addEventListener("click", () => {
-            if (!document.fullscreenElement) {
-                logContainer.requestFullscreen().catch(console.error);
+            if (
+                !document.fullscreenElement &&
+                !document.webkitFullscreenElement &&
+                !document.mozFullScreenElement &&
+                !document.msFullscreenElement
+            ) {
+                openFullscreen(logContainer);
+                fsButton.textContent = "全画面解除";
             } else {
-                document.exitFullscreen();
+                closeFullscreen();
+                fsButton.textContent = "全画面表示";
             }
         });
-        document.addEventListener("fullscreenchange", () => {
-            if (document.fullscreenElement) {
-                fsButton.textContent = EXIT;
-                fsButton.setAttribute('aria-label','全画面解除');
-            } else {
-                fsButton.textContent = ENTER;
-                fsButton.setAttribute('aria-label','全画面表示');
-            }
+
+        // 全画面解除検知
+        ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','MSFullscreenChange'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (
+                    !document.fullscreenElement &&
+                    !document.webkitFullscreenElement &&
+                    !document.mozFullScreenElement &&
+                    !document.msFullscreenElement
+                ) {
+                    fsButton.textContent = "全画面表示";
+                }
+            });
         });
     </script>
 </body>
