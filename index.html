@@ -293,18 +293,229 @@
 
     <!-- 生成されたリンク一覧 -->
     <div class="log">
-      <div class="log-header">
-        <h3>生成されたリンク：</h3>
+      <div class="log-header" style="display:flex;align-items:center;gap:0.5em;white-space:nowrap;">
+        <h3 style="margin:0;white-space:nowrap;">生成されたリンク</h3>
+        <button type="button" id="manualScrollBtn" title="下までスクロール" style="background:#4e73df;color:#fff;border:none;border-radius:5px;padding:0.18em 0.7em;font-weight:600;cursor:pointer;font-size:0.92em;line-height:1.5;min-width:0;">▼</button>
+        <button type="button" id="manualScrollStopBtn" title="スクロール停止" style="background:#e74c3c;color:#fff;border:none;border-radius:5px;padding:0.18em 0.7em;font-weight:600;cursor:pointer;font-size:0.92em;line-height:1.5;min-width:0;">■</button>
       </div>
       <div class="log-content">
         <ul id="logList"></ul>
       </div>
+  <!-- 右下フローティング設定ボタン＆パネル -->
+  <div id="settingFab">
+    <button id="settingFabBtn" aria-label="設定" tabindex="0">
+      <!-- 歯車アイコン -->
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" fill="#fff" opacity="0.13"/>
+        <g stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3.5"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 9 3.09V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09c.2.63.77 1.09 1.51 1.09H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </g>
+      </svg>
+    </button>
+    <div id="settingPanel">
+      <div class="setting-title">
+        <svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#4e73df" opacity="0.13"/><path d="M12 8v8M8 12h8" stroke="#4e73df" stroke-width="2" stroke-linecap="round"/></svg>
+        設定
+      </div>
+      <div class="setting-row">
+        <label for="scrollEnable" class="switch-label">自動スクロール</label>
+        <label class="switch">
+          <input type="checkbox" id="scrollEnable">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <label for="scrollSpeed" class="slider-label">スクロール速度</label>
+        <input type="range" id="scrollSpeed" min="1" max="20" value="8">
+        <span id="scrollSpeedValue">8</span>
+      </div>
+    </div>
+  </div>
+  <style>
+    /* 文字選択禁止 */
+    #settingFab, #settingFab * {
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+    }
+    #settingFab {
+      position: fixed;
+      z-index: 120;
+      right: 2vw;
+      bottom: 2vw;
+    }
+    #settingFabBtn {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #4e73df;
+      box-shadow: 0 2px 12px rgba(78,115,223,0.13);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      outline: none;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #settingFabBtn:hover {
+      background: #375a8c;
+    }
+    #settingPanel {
+      position: absolute;
+      right: 0;
+      bottom: 64px;
+      min-width: 240px;
+      max-width: 340px;
+      background: #fff;
+      border: 1.5px solid #e3eafc;
+      box-shadow: 0 2px 16px rgba(78,115,223,0.13);
+      border-radius: 16px;
+      padding: 1.2em 1.4em 1.2em 1.4em;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2em;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(30px) scale(0.98);
+      transition: opacity 0.22s, transform 0.22s;
+    }
+    #settingPanel.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: none;
+    }
+    .setting-title {
+      font-weight: 600;
+      font-size: 1.08em;
+      color: #4e73df;
+      margin-bottom: 0.2em;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.2em;
+    }
+    .slider-label, .switch-label {
+      color: #4e73df;
+      font-size: 0.98em;
+      font-weight: 500;
+      margin-right: 0.5em;
+      min-width: 90px;
+    }
+    #scrollSpeed {
+      width: 90px;
+      vertical-align: middle;
+    }
+    #scrollSpeedValue {
+      min-width: 2em;
+      display: inline-block;
+      text-align: right;
+      color: #4e73df;
+      font-size: 1em;
+    }
+    /* スイッチトグル */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #e3eafc;
+      border-radius: 24px;
+      transition: background 0.2s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(78,115,223,0.10);
+      transition: transform 0.2s;
+    }
+    .switch input:checked + .slider {
+      background: linear-gradient(90deg, #4e73df 60%, #6bb6ff 100%);
+    }
+    .switch input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+    @media (max-width: 600px) {
+      #settingPanel { right: -10vw; min-width: 170px; max-width: 95vw; padding: 0.7em 0.7em; }
+      #settingFabBtn { width: 44px; height: 44px; }
+    }
+  </style>
     </div>
   </div>
 
   <div class="loader" id="loader" style="display:none;"></div>
 
   <script>
+    // --- 独立スクロール制御用変数 ---
+    let manualScrollActive = false;
+    let manualScrollAnimId = null;
+    function stopManualScroll() {
+      manualScrollActive = false;
+      if (manualScrollAnimId) {
+        cancelAnimationFrame(manualScrollAnimId);
+        manualScrollAnimId = null;
+      }
+    }
+    function startManualScroll() {
+      stopManualScroll();
+      manualScrollActive = true;
+      const logContent = document.querySelector('.log-content');
+      if (!logContent) return;
+      const target = logContent.scrollHeight - logContent.clientHeight;
+      let start = logContent.scrollTop;
+      let distance = target - start;
+      if (distance === 0) return;
+      // pxあたりの速度: scrollSpeed=1なら1px/8ms, scrollSpeed=20なら1px/0.4ms
+      let pxPerMs = Math.max(0.05, scrollSpeed / 8); // 1で0.125, 20で2.5
+      let duration = Math.abs(distance) / pxPerMs;
+      let startTime = null;
+      function animateScroll(ts) {
+        if (!manualScrollActive) return;
+        if (!startTime) startTime = ts;
+        let elapsed = ts - startTime;
+        let progress = Math.min(elapsed / duration, 1);
+        logContent.scrollTop = start + distance * progress;
+        if (progress < 1 && manualScrollActive) {
+          manualScrollAnimId = requestAnimationFrame(animateScroll);
+        } else {
+          logContent.scrollTop = target;
+          manualScrollActive = false;
+          manualScrollAnimId = null;
+        }
+      }
+      manualScrollAnimId = requestAnimationFrame(animateScroll);
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('manualScrollBtn');
+      const stopBtn = document.getElementById('manualScrollStopBtn');
+      if (btn) btn.addEventListener('click', startManualScroll);
+      if (stopBtn) stopBtn.addEventListener('click', stopManualScroll);
+    });
     // --- トークン表示切替（SVGマスクアイコンのみ/状態保存） ---
     (function() {
       const input = document.getElementById("tokens");
@@ -348,6 +559,73 @@
     let abortController;
     let jobs = [];
     let currentJobIndex = 0;
+
+    // --- スクロール有効/速度管理 ---
+    let scrollSpeed = parseInt(localStorage.scrollSpeed || '8', 10);
+    let scrollEnable = localStorage.scrollEnable !== 'false'; // デフォルト有効
+    // 設定パネルUI取得
+    const scrollSpeedInput = document.getElementById('scrollSpeed');
+    const scrollSpeedValue = document.getElementById('scrollSpeedValue');
+    const scrollEnableInput = document.getElementById('scrollEnable');
+    const settingFabBtn = document.getElementById('settingFabBtn');
+    const settingPanel = document.getElementById('settingPanel');
+    let panelOpen = false;
+    if(settingFabBtn && settingPanel) {
+      // どこをタップしても反応するようにSVG内にもイベントを伝播（ただし多重発火防止）
+      settingFabBtn.addEventListener('click', function(e) {
+        // すでにSVG内で発火した場合は無視
+        if (e.__fromSvg) return;
+        panelOpen = !panelOpen;
+        if(panelOpen) {
+          settingPanel.classList.add('open');
+          setTimeout(()=>{
+            document.addEventListener('mousedown', closePanelOnOutside, { once: true });
+          }, 0);
+        } else {
+          settingPanel.classList.remove('open');
+        }
+      });
+      // SVG内のクリックもボタン扱い（多重発火防止のためフラグ付与）
+      const svg = settingFabBtn.querySelector('svg');
+      if(svg) {
+        svg.addEventListener('click', function(e) {
+          e.__fromSvg = true;
+          settingFabBtn.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true}));
+        });
+      }
+      function closePanelOnOutside(ev) {
+        // 設定ボタン全体をクリックした場合も閉じる
+        if(!settingPanel.contains(ev.target) && !settingFabBtn.contains(ev.target)) {
+          panelOpen = false;
+          settingPanel.classList.remove('open');
+        } else {
+          document.addEventListener('mousedown', closePanelOnOutside, { once: true });
+        }
+      }
+    }
+    if(scrollSpeedInput && scrollSpeedValue) {
+      scrollSpeedInput.value = scrollSpeed;
+      scrollSpeedValue.textContent = scrollSpeed;
+      scrollSpeedInput.addEventListener('input', function() {
+        scrollSpeed = parseInt(this.value, 10);
+        scrollSpeedValue.textContent = scrollSpeed;
+        localStorage.scrollSpeed = scrollSpeed;
+      });
+    }
+    if(scrollEnableInput) {
+      scrollEnableInput.checked = scrollEnable;
+      scrollEnableInput.addEventListener('change', function() {
+        scrollEnable = this.checked;
+        localStorage.scrollEnable = scrollEnable;
+        // スクロールOFF時は即座に自動スクロール停止
+        if (!scrollEnable) {
+          if (autoScrollAnimId) {
+            cancelAnimationFrame(autoScrollAnimId);
+            autoScrollAnimId = null;
+          }
+        }
+      });
+    }
 
     // --- 招待リンク生成開始 ---
     document.getElementById("inviteForm").addEventListener("submit", async function(e) {
@@ -442,6 +720,14 @@
       }
 
       // --- ループ実行 ---
+      // 自動スクロール用アニメーションID
+      let autoScrollAnimId = null;
+      function stopAutoScroll() {
+        if (autoScrollAnimId) {
+          cancelAnimationFrame(autoScrollAnimId);
+          autoScrollAnimId = null;
+        }
+      }
       for (; currentJobIndex < jobs.length; currentJobIndex++) {
         const { token, channelID } = jobs[currentJobIndex];
         const link = await createInvite(token, channelID);
@@ -458,6 +744,39 @@
           </span>
         `;
         logList.appendChild(li);
+
+        // --- 自動スクロール ---
+        stopAutoScroll();
+        if (scrollEnable) {
+          const logContent = document.querySelector('.log-content');
+          if (logContent) {
+            const target = logContent.scrollHeight - logContent.clientHeight;
+            let start = logContent.scrollTop;
+            let distance = target - start;
+            if (distance !== 0) {
+              // pxあたりの速度: scrollSpeed=1なら1px/8ms, scrollSpeed=20なら1px/0.4ms
+              let pxPerMs = Math.max(0.05, scrollSpeed / 8); // 1で0.125, 20で2.5
+              let duration = Math.abs(distance) / pxPerMs;
+              let startTime = null;
+              function animateScroll(ts) {
+                if (!scrollEnable) return; // オフ時は即停止
+                if (!startTime) startTime = ts;
+                let elapsed = ts - startTime;
+                let progress = Math.min(elapsed / duration, 1);
+                logContent.scrollTop = start + distance * progress;
+                if (progress < 1 && scrollEnable) {
+                  autoScrollAnimId = requestAnimationFrame(animateScroll);
+                } else {
+                  logContent.scrollTop = target;
+                  autoScrollAnimId = null;
+                }
+              }
+              autoScrollAnimId = requestAnimationFrame(animateScroll);
+            }
+          }
+        } else {
+          stopAutoScroll();
+        }
 
         const done = currentJobIndex + 1;
         compEl.textContent = done;
