@@ -862,7 +862,7 @@
       function addProcessLog(msg, type = "info") {
         if (!processLogList) return;
         const li = document.createElement("li");
-        li.textContent = msg;
+        li.innerHTML = msg; // HTMLタグを反映
         li.classList.add(type);
         processLogList.appendChild(li);
         // 最大80件まで
