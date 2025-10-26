@@ -637,18 +637,16 @@
         設定
       </div>
       <div class="setting-row">
-        <label for="scrollEnable" class="switch-label">自動スクロール</label>
+        <label for="autoPageSwitch" class="switch-label">自動ページ切替</label>
         <label class="switch">
-          <input type="checkbox" id="scrollEnable">
+          <input type="checkbox" id="autoPageSwitch">
           <span class="slider"></span>
         </label>
       </div>
       <div class="setting-row">
-        <label class="slider-label">スクロール速度</label>
-        <div class="speed-buttons">
-          <button class="speed-btn" data-speed="1">遅い</button>
-          <button class="speed-btn active" data-speed="3">普通</button>
-        </div>
+        <label for="autoSwitchSpeed" class="slider-label">切替速度(ms)</label>
+        <input type="number" id="autoSwitchSpeed" min="100" max="5000" step="100" value="800" style="width:80px;">
+        <button type="button" id="autoSwitchStopBtn" style="margin-left:10px;background:#e74c3c;color:#fff;border-radius:8px;padding:0.3em 0.8em;border:none;">停止</button>
       </div>
     </div>
   </div>
@@ -660,7 +658,11 @@
   let generatedLinks = [];
   // デフォルトを8にして、CSSの --page-size と一致させる
   let pageSize = parseInt(localStorage.pageSize || '8', 10);
-    let currentPage = 0;
+  let currentPage = 0;
+  // 自動ページ切替関連
+  let autoPageSwitch = localStorage.autoPageSwitch === 'true'; // デフォルトOFF
+  let autoSwitchSpeed = parseInt(localStorage.autoSwitchSpeed || '800', 10); // ms
+  let autoSwitchTimer = null;
 
     function renderPage(pageIndex) {
       const logList = document.getElementById('logList');
@@ -708,6 +710,50 @@
       try {
         document.documentElement.style.setProperty('--page-size', String(pageSize));
       } catch (e) { /* ignore */ }
+  // 設定パネルの自動切替スイッチ・速度・停止ボタン初期化
+      const autoPageSwitchInput = document.getElementById('autoPageSwitch');
+      const autoSwitchSpeedInput = document.getElementById('autoSwitchSpeed');
+      const autoSwitchStopBtn = document.getElementById('autoSwitchStopBtn');
+      if (autoPageSwitchInput) {
+        autoPageSwitchInput.checked = autoPageSwitch;
+        autoPageSwitchInput.addEventListener('change', function() {
+          autoPageSwitch = this.checked;
+          localStorage.autoPageSwitch = autoPageSwitch;
+        });
+      }
+      if (autoSwitchSpeedInput) {
+        autoSwitchSpeedInput.value = autoSwitchSpeed;
+        autoSwitchSpeedInput.addEventListener('input', function() {
+          autoSwitchSpeed = parseInt(this.value, 10);
+          localStorage.autoSwitchSpeed = autoSwitchSpeed;
+        });
+      }
+      if (autoSwitchStopBtn) {
+        autoSwitchStopBtn.addEventListener('click', function() {
+          if (autoSwitchTimer) {
+            clearTimeout(autoSwitchTimer);
+            autoSwitchTimer = null;
+          }
+        });
+      }
+      // キーボード左右矢印でページ切替（入力要素にフォーカスがある場合は無効化）
+      document.addEventListener('keydown', function(e) {
+        try {
+          const active = document.activeElement;
+          const tag = active && active.tagName;
+          const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable;
+          if (isInput) return; // 入力中は無効
+        } catch (err) {
+          // ignore
+        }
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          renderPage(currentPage - 1);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          renderPage(currentPage + 1);
+        }
+      });
       // initial render
       renderPage(0);
     });
@@ -969,10 +1015,19 @@
         const link = await createInvite(token, channelID);
         if (!link) return;
 
-        // ページネーション用に配列へ追加し、最後のページへ移動して再描画
+        // ページネーション用に配列へ追加
         generatedLinks.push(link);
         const totalPages = Math.max(1, Math.ceil(generatedLinks.length / pageSize));
-        currentPage = totalPages - 1; // 新しいリンクが見えるよう最後のページへ
+        // 自動ページ切替が有効なら、指定速度で最後のページへ遷移
+        if (autoPageSwitch) {
+          if (autoSwitchTimer) clearTimeout(autoSwitchTimer);
+          autoSwitchTimer = setTimeout(() => {
+            currentPage = totalPages - 1;
+            renderPage(currentPage);
+            autoSwitchTimer = null;
+          }, autoSwitchSpeed);
+        }
+        // 無効ならページはそのまま
         renderPage(currentPage);
 
         // --- 自動スクロール ---
