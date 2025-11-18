@@ -15,7 +15,7 @@
   <meta property="og:type"        content="website" />
   <meta property="og:site_name"   content="Freeze" />
   <meta property="og:title"       content="招待URL生成ツール" />
-  <meta property="og:description" content="★序列の良い招待URLを目指せ★" />
+  <meta property="og:description" content="★配列の良い招待URLを目指せ★" />
   <meta property="og:url"         content="" />
   <meta property="og:image"       content="" />
 <!----------------------------------------------------------------->
@@ -410,146 +410,38 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* 右下フローティング設定ボタン＆パネル */
-    #settingFab {
-      position: fixed;
-      z-index: 120;
-      right: 2vw;
-      bottom: 2vw;
-    }
-    #settingFabBtn {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      background: #4e73df;
-      box-shadow: 0 2px 12px rgba(78,115,223,0.13);
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.2s;
-      outline: none;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #settingFabBtn:hover {
-      background: #375a8c;
-    }
-    #settingPanel {
-      position: absolute;
-      right: 0;
-      bottom: 64px;
-      min-width: 240px;
-      max-width: 340px;
-      background: #fff;
-      border: 1.5px solid #e3eafc;
-      box-shadow: 0 2px 16px rgba(78,115,223,0.13);
-      border-radius: 16px;
-      padding: 1.2em 1.4em 1.2em 1.4em;
-      display: flex;
-      flex-direction: column;
-      gap: 1.2em;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(30px) scale(0.98);
-      transition: opacity 0.22s, transform 0.22s;
-    }
-    #settingPanel.open {
-      opacity: 1;
-      pointer-events: auto;
-      transform: none;
-    }
-    .setting-title {
-      font-weight: 600;
-      font-size: 1.08em;
-      color: #4e73df;
-      margin-bottom: 0.2em;
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-    }
-    .setting-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1.2em;
-    }
-    .slider-label, .switch-label {
-      color: #4e73df;
-      font-size: 0.98em;
-      font-weight: 500;
-      margin-right: 0.5em;
-      min-width: 90px;
-    }
-    
-    /* 速度選択ボタン */
-    .speed-buttons {
-      display: flex;
-      gap: 0.5em;
-    }
-    .speed-btn {
-      padding: 0.4em 0.8em;
-      border-radius: 6px;
-      border: 1px solid #d2d8e6;
-      background: #f5f8fd;
-      color: #3a4a7c;
-      font-size: 0.9em;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .speed-btn:hover {
-      background: #e3eafc;
-    }
-    .speed-btn.active {
-      background: #4e73df;
-      color: white;
-      border-color: #4e73df;
-    }
-
-    /* スイッチトグル */
+    /* スイッチ（トグル）スタイル */
     .switch {
       position: relative;
       display: inline-block;
-      width: 44px;
-      height: 24px;
+      width: 46px;
+      height: 26px;
     }
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    .slider {
+    .switch input { display: none; }
+    .switch .slider {
       position: absolute;
       cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: #e3eafc;
-      border-radius: 24px;
-      transition: background 0.2s;
+      background-color: #cfd9f7;
+      transition: .2s;
+      border-radius: 26px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
     }
-    .slider:before {
+    .switch .slider:before {
       position: absolute;
       content: "";
-      height: 18px;
-      width: 18px;
+      height: 20px;
+      width: 20px;
       left: 3px;
-      bottom: 3px;
-      background: #fff;
+      top: 3px;
+      background-color: #fff;
+      transition: .2s;
       border-radius: 50%;
-      box-shadow: 0 1px 4px rgba(78,115,223,0.10);
-      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-    .switch input:checked + .slider {
-      background: linear-gradient(90deg, #4e73df 60%, #6bb6ff 100%);
-    }
-    .switch input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-    @media (max-width: 600px) {
-      #settingPanel { right: -10vw; min-width: 170px; max-width: 95vw; padding: 0.7em 0.7em; }
-      #settingFabBtn { width: 44px; height: 44px; }
-      .speed-buttons { flex-wrap: wrap; }
-    }
+    .switch input:checked + .slider { background-color: #4e73df; }
+    .switch input:checked + .slider:before { transform: translateX(20px); }
+
   </style>
 </head>
 
@@ -557,6 +449,56 @@
   <h1>Discord 招待リンク生成ツール</h1>
 
   <div class="container">
+        <!-- 設定パネル（右下フローティング） -->
+        <button id="settingsFab" title="設定" style="position:fixed;bottom:32px;right:32px;z-index:10001;width:56px;height:56px;border-radius:50%;background:transparent;color:#4e73df;border:none;box-shadow:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:2rem;transition:background 0.2s;">
+          <!-- ユーザー提供のSVGをインラインで貼り付け -->
+          <svg viewBox="0 0 512 512" width="2em" height="2em" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M497.569,215.169l-55.341-13.064c-4.037-13.955-9.495-27.277-16.376-39.735l29.844-48.304
+                c4.57-7.395,3.45-16.945-2.688-23.084l-31.992-31.991c-6.128-6.129-15.67-7.248-23.073-2.68l-48.286,29.854
+                c-12.468-6.881-25.789-12.348-39.734-16.376l-13.064-55.368c-2-8.44-9.551-14.422-18.23-14.422h-45.24
+                c-8.679,0-16.22,5.982-18.22,14.422L202.105,69.79c-13.955,4.028-27.276,9.478-39.735,16.376l-48.304-29.871
+                c-7.386-4.551-16.945-3.441-23.084,2.697L58.992,90.974c-6.129,6.137-7.248,15.706-2.689,23.082l29.863,48.313
+                c-6.881,12.458-12.349,25.78-16.367,39.716L14.422,215.15C5.982,217.169,0,224.701,0,233.389v45.231
+                c0,8.679,5.982,16.239,14.422,18.229L69.8,309.914c4.028,13.945,9.486,27.257,16.367,39.707l-29.872,48.322
+                c-4.551,7.394-3.441,16.954,2.697,23.101l31.982,31.973c6.138,6.147,15.706,7.256,23.082,2.688l48.322-29.872
+                c12.469,6.89,25.79,12.349,39.726,16.367l13.064,55.368c2,8.468,9.541,14.431,18.22,14.431h45.24c8.679,0,16.23-5.964,18.23-14.431
+                l13.064-55.368c13.936-4.018,27.258-9.477,39.708-16.367l48.313,29.863c7.403,4.57,16.945,3.45,23.092-2.688l31.982-31.992
+                c6.128-6.128,7.248-15.688,2.678-23.083l-29.863-48.304c6.899-12.45,12.349-25.771,16.377-39.716l55.368-13.065
+                c8.468-2,14.422-9.541,14.422-18.229V233.38C512,224.71,506.036,217.169,497.569,215.169z M255.995,397.319
+                c-78.001,0-141.296-63.295-141.296-141.324c0-78.038,63.296-141.324,141.296-141.324c78.03,0,141.324,63.286,141.324,141.324
+                C397.319,334.024,334.025,397.319,255.995,397.319z" />
+            <path fill="currentColor" d="M256.005,180.507c-41.671,0-75.469,33.809-75.469,75.488c0,41.68,33.798,75.488,75.469,75.488
+                c41.68,0,75.487-33.808,75.487-75.488C331.492,214.316,297.684,180.507,256.005,180.507z" />
+          </svg>
+        </button>
+        <div id="settingsPanel" class="settings-panel" style="display:none;position:fixed;bottom:100px;right:32px;z-index:10000;background:#fafdff;padding:1.2rem 1.5rem 1.5rem 1.5rem;border-radius:16px;box-shadow:0 2px 16px rgba(78,115,223,0.18);width:320px;max-width:90vw;font-size:1.02rem;color:#4e73df;border:1.5px solid #e3eafc;">
+          <h4 style="font-size:1.08rem;font-weight:700;color:#3a4a7c;margin-bottom:0.7rem;display:flex;align-items:center;gap:0.5em;">
+            <svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#4e73df" opacity="0.13"/><path d="M12 7v5l3 3" stroke="#4e73df" stroke-width="2" fill="none"/></svg>
+            設定
+          </h4>
+          <div style="margin-bottom:1.1em;display:flex;align-items:center;gap:0.8rem;">
+            <label for="autoSaveToggle" style="font-weight:600;color:#3a4a7c;display:flex;align-items:center;gap:0.6em;cursor:pointer;">
+              <span style="font-weight:600;">生成リンクを自動保存</span>
+            </label>
+            <label class="switch" style="margin-left:auto;">
+              <input type="checkbox" id="autoSaveToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <label for="pageSizeSelect" style="font-weight:600;color:#3a4a7c;">表示件数：</label>
+            <select id="pageSizeSelect" style="width:80px;padding:0.25em 0.6em;margin-left:0.5em;border-radius:6px;border:1.2px solid #d2d8e6;background:#f5f8fd;font-size:1em;">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+            </select>
+          </div>
+        </div>
     <!-- 進行状況ログ -->
     <div class="process-log" id="processLog">
       <h4 style="font-size:1.13em;display:flex;align-items:center;gap:0.5em;">
@@ -619,58 +561,87 @@
     </div>
   </div>
 
-  <!-- 右下フローティング設定ボタン＆パネル -->
-  <div id="settingFab">
-    <button id="settingFabBtn" aria-label="設定" tabindex="0">
-      <!-- 歯車アイコン -->
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" fill="#fff" opacity="0.13"/>
-        <g stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3.5"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 9 3.09V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09c.2.63.77 1.09 1.51 1.09H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </g>
-      </svg>
-    </button>
-    <div id="settingPanel">
-      <div class="setting-title">
-        <svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#4e73df" opacity="0.13"/><path d="M12 8v8M8 12h8" stroke="#4e73df" stroke-width="2" stroke-linecap="round"/></svg>
-        設定
-      </div>
-      <div class="setting-row">
-        <label for="autoPageSwitch" class="switch-label">自動ページ切替</label>
-        <label class="switch">
-          <input type="checkbox" id="autoPageSwitch">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-row">
-        <label for="autoSwitchSpeed" class="slider-label">切替速度(ms)</label>
-        <input type="number" id="autoSwitchSpeed" min="100" max="5000" step="100" value="800" style="width:80px;">
-        <button type="button" id="autoSwitchStopBtn" style="margin-left:10px;background:#e74c3c;color:#fff;border-radius:8px;padding:0.3em 0.8em;border:none;">停止</button>
-      </div>
-    </div>
-  </div>
+    
   
   <div class="loader" id="loader" style="display:none;"></div>
 
   <script>
+      // --- 設定パネルの開閉ロジック ---
+      document.addEventListener('DOMContentLoaded', function() {
+        const fab = document.getElementById('settingsFab');
+        const panel = document.getElementById('settingsPanel');
+        if (fab && panel) {
+          fab.addEventListener('click', function() {
+            panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
+          });
+          // パネル外クリックで閉じる（FAB内部のクリックは閉じない）
+          document.addEventListener('mousedown', function(e) {
+            // クリック対象がパネル内でもなく、かつFABの内部でもない場合に閉じる
+            if (panel.style.display === 'block' && !panel.contains(e.target) && !fab.contains(e.target)) {
+              panel.style.display = 'none';
+            }
+          });
+        }
+      });
+    // --- 設定パネルのロジック ---
+    document.addEventListener('DOMContentLoaded', function() {
+      // 自動保存の状態を復元（スイッチ）
+      const autoSaveCheckbox = document.getElementById('autoSaveToggle');
+      if (autoSaveCheckbox) {
+        const autoSave = localStorage.autoSaveLinks !== 'false';
+        autoSaveCheckbox.checked = autoSave;
+        autoSaveCheckbox.addEventListener('change', function() {
+          localStorage.autoSaveLinks = autoSaveCheckbox.checked;
+          if (!autoSaveCheckbox.checked) {
+            // 自動保存を外したら既存の保存をリセット
+            localStorage.removeItem('generatedLinks');
+            generatedLinks = [];
+            renderPage(0);
+          } else {
+            // 有効にしたら既存の保存があれば復元する
+            if (localStorage.generatedLinks) {
+              try { generatedLinks = JSON.parse(localStorage.generatedLinks); } catch (e) { generatedLinks = []; }
+              renderPage(0);
+            }
+          }
+        });
+      }
+
+      // 表示件数の状態を復元（select）
+      const pageSizeSelect = document.getElementById('pageSizeSelect');
+      if (pageSizeSelect) {
+        let saved = parseInt(localStorage.pageSize || '8', 10);
+        if (isNaN(saved) || saved < 1) saved = 8;
+        if (saved > 8) saved = 8;
+        pageSizeSelect.value = String(saved);
+        pageSize = saved;
+        document.documentElement.style.setProperty('--page-size', String(pageSize));
+        pageSizeSelect.addEventListener('change', function() {
+          let val = parseInt(pageSizeSelect.value, 10);
+          if (isNaN(val) || val < 1) val = 1;
+          if (val > 8) val = 8;
+          pageSize = val;
+          localStorage.pageSize = val;
+          document.documentElement.style.setProperty('--page-size', String(val));
+          renderPage(0);
+        });
+      }
+    });
   // --- ページ切替用変数 ---
   let generatedLinks = [];
   // デフォルトを8にして、CSSの --page-size と一致させる
   let pageSize = parseInt(localStorage.pageSize || '8', 10);
   let currentPage = 0;
-  // 自動ページ切替関連
-  let autoPageSwitch = localStorage.autoPageSwitch === 'true'; // デフォルトOFF
-  let autoSwitchSpeed = parseInt(localStorage.autoSwitchSpeed || '800', 10); // ms
-  let autoSwitchTimer = null;
 
     function renderPage(pageIndex) {
+      // pageSizeは常に最新値を参照
+      let ps = parseInt(localStorage.pageSize || pageSize || '8', 10);
+      if (isNaN(ps) || ps < 1) ps = 8;
       const logList = document.getElementById('logList');
       const pageIndicator = document.getElementById('pageIndicator');
       const prevBtn = document.getElementById('prevPageBtn');
       const nextBtn = document.getElementById('nextPageBtn');
-
-      const totalPages = Math.max(1, Math.ceil(generatedLinks.length / pageSize));
+      const totalPages = Math.max(1, Math.ceil(generatedLinks.length / ps));
       let p = Math.max(0, Math.min(pageIndex, totalPages - 1));
       currentPage = p;
 
@@ -679,8 +650,8 @@
 
       // rebuild list for the page
       logList.innerHTML = '';
-      const start = currentPage * pageSize;
-      const end = Math.min(start + pageSize, generatedLinks.length);
+      const start = currentPage * ps;
+      const end = Math.min(start + ps, generatedLinks.length);
       for (let i = start; i < end; i++) {
         const link = generatedLinks[i];
         const li = document.createElement('li');
@@ -710,32 +681,6 @@
       try {
         document.documentElement.style.setProperty('--page-size', String(pageSize));
       } catch (e) { /* ignore */ }
-  // 設定パネルの自動切替スイッチ・速度・停止ボタン初期化
-      const autoPageSwitchInput = document.getElementById('autoPageSwitch');
-      const autoSwitchSpeedInput = document.getElementById('autoSwitchSpeed');
-      const autoSwitchStopBtn = document.getElementById('autoSwitchStopBtn');
-      if (autoPageSwitchInput) {
-        autoPageSwitchInput.checked = autoPageSwitch;
-        autoPageSwitchInput.addEventListener('change', function() {
-          autoPageSwitch = this.checked;
-          localStorage.autoPageSwitch = autoPageSwitch;
-        });
-      }
-      if (autoSwitchSpeedInput) {
-        autoSwitchSpeedInput.value = autoSwitchSpeed;
-        autoSwitchSpeedInput.addEventListener('input', function() {
-          autoSwitchSpeed = parseInt(this.value, 10);
-          localStorage.autoSwitchSpeed = autoSwitchSpeed;
-        });
-      }
-      if (autoSwitchStopBtn) {
-        autoSwitchStopBtn.addEventListener('click', function() {
-          if (autoSwitchTimer) {
-            clearTimeout(autoSwitchTimer);
-            autoSwitchTimer = null;
-          }
-        });
-      }
       // キーボード左右矢印でページ切替（入力要素にフォーカスがある場合は無効化）
       document.addEventListener('keydown', function(e) {
         try {
@@ -787,6 +732,14 @@
       if (localStorage.tokens)    document.getElementById("tokens").value    = localStorage.tokens;
       if (localStorage.channelID) document.getElementById("channelID").value = localStorage.channelID;
       if (localStorage.linkCount) document.getElementById("linkCount").value = localStorage.linkCount;
+      // 生成リンクの自動保存が有効なら復元
+      const autoSave = (localStorage.autoSaveLinks !== 'false');
+      if (autoSave && localStorage.generatedLinks) {
+        try {
+          generatedLinks = JSON.parse(localStorage.generatedLinks);
+        } catch (e) { generatedLinks = []; }
+      }
+      renderPage(0);
       // 初期状態から停止ボタンを無効化
       document.getElementById("stopButton").disabled = true;
     });
@@ -800,82 +753,6 @@
     let abortController;
     let jobs = [];
     let currentJobIndex = 0;
-
-    // --- スクロール有効/速度管理 ---
-    let scrollSpeed = parseInt(localStorage.scrollSpeed || '3', 10); // 初期値を普通(3)に
-    let scrollEnable = localStorage.scrollEnable !== 'false'; // デフォルト有効
-    // 設定パネルUI取得
-    const scrollEnableInput = document.getElementById('scrollEnable');
-    const settingFabBtn = document.getElementById('settingFabBtn');
-    const settingPanel = document.getElementById('settingPanel');
-    let panelOpen = false;
-    if(settingFabBtn && settingPanel) {
-      // どこをタップしても反応するようにSVG内にもイベントを伝播（ただし多重発火防止）
-      settingFabBtn.addEventListener('click', function(e) {
-        // すでにSVG内で発火した場合は無視
-        if (e.__fromSvg) return;
-        panelOpen = !panelOpen;
-        if(panelOpen) {
-          settingPanel.classList.add('open');
-          setTimeout(()=>{
-            document.addEventListener('mousedown', closePanelOnOutside, { once: true });
-          }, 0);
-        } else {
-          settingPanel.classList.remove('open');
-        }
-      });
-      // SVG内のクリックもボタン扱い（多重発火防止のためフラグ付与）
-      const svg = settingFabBtn.querySelector('svg');
-      if(svg) {
-        svg.addEventListener('click', function(e) {
-          e.__fromSvg = true;
-          settingFabBtn.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true}));
-        });
-      }
-      function closePanelOnOutside(ev) {
-        // 設定ボタン全体をクリックした場合も閉じる
-        if(!settingPanel.contains(ev.target) && !settingFabBtn.contains(ev.target)) {
-          panelOpen = false;
-          settingPanel.classList.remove('open');
-        } else {
-          document.addEventListener('mousedown', closePanelOnOutside, { once: true });
-        }
-      }
-    }
-    
-    // 速度選択ボタンの処理
-    const speedButtons = document.querySelectorAll('.speed-btn');
-    speedButtons.forEach(btn => {
-      const speed = parseInt(btn.dataset.speed, 10);
-      if (speed === scrollSpeed) {
-        btn.classList.add('active');
-      }
-      
-      btn.addEventListener('click', function() {
-        // アクティブ状態を更新
-        speedButtons.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        // 速度を設定
-        scrollSpeed = speed;
-        localStorage.scrollSpeed = scrollSpeed;
-      });
-    });
-    
-    if(scrollEnableInput) {
-      scrollEnableInput.checked = scrollEnable;
-      scrollEnableInput.addEventListener('change', function() {
-        scrollEnable = this.checked;
-        localStorage.scrollEnable = scrollEnable;
-        // スクロールOFF時は即座に自動スクロール停止
-        if (!scrollEnable) {
-          if (autoScrollAnimId) {
-            cancelAnimationFrame(autoScrollAnimId);
-            autoScrollAnimId = null;
-          }
-        }
-      });
-    }
 
     // --- 招待リンク生成開始 ---
     document.getElementById("inviteForm").addEventListener("submit", async function(e) {
@@ -1002,14 +879,6 @@
       }
 
       // --- ループ実行 ---
-      // 自動スクロール用アニメーションID
-      let autoScrollAnimId = null;
-      function stopAutoScroll() {
-        if (autoScrollAnimId) {
-          cancelAnimationFrame(autoScrollAnimId);
-          autoScrollAnimId = null;
-        }
-      }
       for (; currentJobIndex < jobs.length; currentJobIndex++) {
         const { token, channelID } = jobs[currentJobIndex];
         const link = await createInvite(token, channelID);
@@ -1017,52 +886,14 @@
 
         // ページネーション用に配列へ追加
         generatedLinks.push(link);
-        const totalPages = Math.max(1, Math.ceil(generatedLinks.length / pageSize));
-        // 自動ページ切替が有効なら、指定速度で最後のページへ遷移
-        if (autoPageSwitch) {
-          if (autoSwitchTimer) clearTimeout(autoSwitchTimer);
-          autoSwitchTimer = setTimeout(() => {
-            currentPage = totalPages - 1;
-            renderPage(currentPage);
-            autoSwitchTimer = null;
-          }, autoSwitchSpeed);
-        }
-        // 無効ならページはそのまま
         renderPage(currentPage);
-
-        // --- 自動スクロール ---
-        stopAutoScroll();
-        if (scrollEnable) {
-          const logContent = document.querySelector('.log-content');
-          if (logContent) {
-            const target = logContent.scrollHeight - logContent.clientHeight;
-            let start = logContent.scrollTop;
-            let distance = target - start;
-            if (distance !== 0) {
-              // pxあたりの速度: scrollSpeed=1なら1px/24ms, scrollSpeed=3なら1px/12ms, 20なら1px/0.8ms
-              let pxPerMs = Math.max(0.02, scrollSpeed / 24); // 1で0.041, 3で0.125, 20で0.83
-              let duration = Math.abs(distance) / pxPerMs;
-              let startTime = null;
-              function animateScroll(ts) {
-                if (!scrollEnable) return; // オフ時は即停止
-                if (!startTime) startTime = ts;
-                let elapsed = ts - startTime;
-                let progress = Math.min(elapsed / duration, 1);
-                logContent.scrollTop = start + distance * progress;
-                if (progress < 1 && scrollEnable) {
-                  autoScrollAnimId = requestAnimationFrame(animateScroll);
-                } else {
-                  logContent.scrollTop = target;
-                  autoScrollAnimId = null;
-                }
-              }
-              autoScrollAnimId = requestAnimationFrame(animateScroll);
-            }
-          }
-        } else {
-          stopAutoScroll();
+        // 自動保存が有効なら保存
+        const autoSave = (localStorage.autoSaveLinks !== 'false');
+        if (autoSave) {
+          try {
+            localStorage.generatedLinks = JSON.stringify(generatedLinks);
+          } catch (e) { /* ignore */ }
         }
-
         const done = currentJobIndex + 1;
         compEl.textContent = done;
         pendEl.textContent = jobs.length - done;
