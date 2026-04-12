@@ -298,7 +298,6 @@
     .log-content ul li {
       background: #fff;
       border: 1.2px solid #e3eafc;
-      border-left: 4px solid #4e73df;
       border-radius: 7px;
       padding: 0.7rem 0.9rem;
       display: flex;
@@ -310,7 +309,6 @@
     }
     .log-content ul li:hover {
       box-shadow: 0 4px 16px rgba(78,115,223,0.13);
-      border-left: 4px solid #6bb6ff;
     }
     .log-content ul li a {
       flex: 1;
@@ -450,7 +448,7 @@
 
   <div class="container">
         <!-- 設定パネル（右下フローティング） -->
-        <button id="settingsFab" title="設定" style="position:fixed;bottom:32px;right:32px;z-index:10001;width:56px;height:56px;border-radius:50%;background:transparent;color:#4e73df;border:none;box-shadow:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:2rem;transition:background 0.2s;">
+        <button id="settingsFab" title="設定" style="position:fixed;bottom:32px;right:32px;z-index:10001;width:56px;height:56px;border-radius:50%;background:transparent;color:#666;border:none;box-shadow:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:2rem;transition:background 0.2s;">
           <!-- ユーザー提供のSVGをインラインで貼り付け -->
           <svg viewBox="0 0 512 512" width="2em" height="2em" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
             <path fill="currentColor" d="M497.569,215.169l-55.341-13.064c-4.037-13.955-9.495-27.277-16.376-39.735l29.844-48.304
@@ -473,7 +471,6 @@
         </button>
         <div id="settingsPanel" class="settings-panel" style="display:none;position:fixed;bottom:100px;right:32px;z-index:10000;background:#fafdff;padding:1.2rem 1.5rem 1.5rem 1.5rem;border-radius:16px;box-shadow:0 2px 16px rgba(78,115,223,0.18);width:320px;max-width:90vw;font-size:1.02rem;color:#4e73df;border:1.5px solid #e3eafc;">
           <h4 style="font-size:1.08rem;font-weight:700;color:#3a4a7c;margin-bottom:0.7rem;display:flex;align-items:center;gap:0.5em;">
-            <svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#4e73df" opacity="0.13"/><path d="M12 7v5l3 3" stroke="#4e73df" stroke-width="2" fill="none"/></svg>
             設定
           </h4>
           <div style="margin-bottom:1.1em;display:flex;align-items:center;gap:0.8rem;">
@@ -484,19 +481,6 @@
               <input type="checkbox" id="autoSaveToggle">
               <span class="slider"></span>
             </label>
-          </div>
-          <div style="display:flex;align-items:center;gap:0.6rem;">
-            <label for="pageSizeSelect" style="font-weight:600;color:#3a4a7c;">表示件数：</label>
-            <select id="pageSizeSelect" style="width:80px;padding:0.25em 0.6em;margin-left:0.5em;border-radius:6px;border:1.2px solid #d2d8e6;background:#f5f8fd;font-size:1em;">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-            </select>
           </div>
         </div>
     <!-- 進行状況ログ -->
@@ -608,35 +592,19 @@
       }
 
       // 表示件数の状態を復元（select）
-      const pageSizeSelect = document.getElementById('pageSizeSelect');
-      if (pageSizeSelect) {
-        let saved = parseInt(localStorage.pageSize || '8', 10);
-        if (isNaN(saved) || saved < 1) saved = 8;
-        if (saved > 8) saved = 8;
-        pageSizeSelect.value = String(saved);
-        pageSize = saved;
-        document.documentElement.style.setProperty('--page-size', String(pageSize));
-        pageSizeSelect.addEventListener('change', function() {
-          let val = parseInt(pageSizeSelect.value, 10);
-          if (isNaN(val) || val < 1) val = 1;
-          if (val > 8) val = 8;
-          pageSize = val;
-          localStorage.pageSize = val;
-          document.documentElement.style.setProperty('--page-size', String(val));
-          renderPage(0);
-        });
-      }
+      // 廃止：常に8件に固定
+      pageSize = 8;
+      document.documentElement.style.setProperty('--page-size', String(pageSize));
     });
   // --- ページ切替用変数 ---
   let generatedLinks = [];
-  // デフォルトを8にして、CSSの --page-size と一致させる
-  let pageSize = parseInt(localStorage.pageSize || '8', 10);
+  // 常に8件に固定
+  let pageSize = 8;
   let currentPage = 0;
 
     function renderPage(pageIndex) {
-      // pageSizeは常に最新値を参照
-      let ps = parseInt(localStorage.pageSize || pageSize || '8', 10);
-      if (isNaN(ps) || ps < 1) ps = 8;
+      // pageSizeは常に8に固定
+      const ps = 8;
       const logList = document.getElementById('logList');
       const pageIndicator = document.getElementById('pageIndicator');
       const prevBtn = document.getElementById('prevPageBtn');
@@ -657,12 +625,8 @@
         const li = document.createElement('li');
         li.innerHTML = `
           <a href="${link}" target="_blank">
-            <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:0.3em;"><path d="M14 3h7v7" stroke="#4e73df" stroke-width="2" fill="none"/><path d="M10 14L21 3" stroke="#4e73df" stroke-width="2" fill="none"/></svg>
             ${link}
           </a>
-          <span class="icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#4e73df" opacity="0.12"/><path d="M7 17l5-5 5 5" stroke="#4e73df" stroke-width="2" fill="none"/></svg>
-          </span>
         `;
         logList.appendChild(li);
       }
