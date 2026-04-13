@@ -685,6 +685,8 @@
       const totalPages = Math.max(1, Math.ceil(generatedLinks.length / ps));
       let p = Math.max(0, Math.min(pageIndex, totalPages - 1));
       currentPage = p;
+      // ページ番号をローカルストレージに保存
+      localStorage.setItem('currentPage', String(currentPage));
 
       const startItem = generatedLinks.length === 0 ? 0 : currentPage * ps + 1;
       const endItem = Math.min((currentPage + 1) * ps, generatedLinks.length);
@@ -745,8 +747,7 @@
       const nextBtn = document.getElementById('nextPageBtn');
       if (prevBtn) prevBtn.addEventListener('click', () => renderPage(currentPage - 1));
       if (nextBtn) nextBtn.addEventListener('click', () => renderPage(currentPage + 1));
-      // 初期ページボタンを生成
-      renderPage(0);
+      // ページ情報の初期化は後続の復元処理で行う
       // CSS の --page-size を JS 側の pageSize に合わせて同期
       try {
         document.documentElement.style.setProperty('--page-size', String(pageSize));
@@ -773,8 +774,6 @@
           renderPage(currentPage + 1);
         }
       });
-      // initial render
-      renderPage(0);
     });
     // --- トークン表示切替（SVGマスクアイコンのみ/状態保存） ---
     (function() {
@@ -802,7 +801,7 @@
     })();
 
     // --- ローカルストレージ復元／保存 ---
-    window.addEventListener("DOMContentLoaded", () => {
+    function restoreSavedState() {
       if (localStorage.tokens)    document.getElementById("tokens").value    = localStorage.tokens;
       if (localStorage.channelID) document.getElementById("channelID").value = localStorage.channelID;
       if (localStorage.linkCount) document.getElementById("linkCount").value = localStorage.linkCount;
@@ -813,10 +812,17 @@
           generatedLinks = JSON.parse(localStorage.generatedLinks);
         } catch (e) { generatedLinks = []; }
       }
-      renderPage(0);
+      // 前回開いていたページを復元
+      const savedPage = parseInt(localStorage.getItem('currentPage') || '0', 10);
+      renderPage(savedPage);
       // 初期状態から停止ボタンを無効化
       document.getElementById("stopButton").disabled = true;
-    });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', restoreSavedState);
+    } else {
+      restoreSavedState();
+    }
     document.getElementById("inviteForm").addEventListener("input", () => {
       localStorage.tokens    = document.getElementById("tokens").value;
       localStorage.channelID = document.getElementById("channelID").value;
@@ -860,6 +866,8 @@
           }
         });
         currentJobIndex = 0;
+        // 新規生成時はページを1ページ目にリセット
+        localStorage.setItem('currentPage', '0');
         document.getElementById("pendingCount").textContent   = jobs.length;
         document.getElementById("completedCount").textContent = 0;
       }
