@@ -724,10 +724,18 @@
         const buttonWidth = 36;
         const visibleCount = Math.max(1, Math.floor((availableWidth + gap) / (buttonWidth + gap)));
 
-        const groupStart = Math.floor(currentPage / visibleCount) * visibleCount;
-        const groupEnd = Math.min(totalPages, groupStart + visibleCount);
+        let pageStart;
+        if (totalPages <= visibleCount) {
+          pageStart = 0;
+        } else {
+          const halfVisible = Math.floor(visibleCount / 2);
+          pageStart = currentPage - halfVisible;
+          pageStart = Math.max(0, pageStart);
+          pageStart = Math.min(pageStart, totalPages - visibleCount);
+        }
+        const pageEnd = Math.min(totalPages, pageStart + visibleCount);
 
-        for (let page = groupStart; page < groupEnd; page++) {
+        for (let page = pageStart; page < pageEnd; page++) {
           const btn = document.createElement('button');
           btn.textContent = String(page + 1);
           btn.className = page === currentPage ? 'active' : '';
